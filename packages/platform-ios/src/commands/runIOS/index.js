@@ -16,6 +16,7 @@ import findXcodeProject from './findXcodeProject';
 import parseIOSDevicesList from './parseIOSDevicesList';
 import findMatchingSimulator from './findMatchingSimulator';
 import warnAboutManuallyLinkedLibs from '../../link/warnAboutManuallyLinkedLibs';
+import warnAboutPodInstall from '../../link/warnAboutPodInstall';
 import {
   logger,
   CLIError,
@@ -43,6 +44,7 @@ function runIOS(_: Array<string>, ctx: ConfigT, args: FlagsT) {
   }
 
   warnAboutManuallyLinkedLibs(ctx);
+  warnAboutPodInstall(ctx);
 
   process.chdir(args.projectPath);
 
