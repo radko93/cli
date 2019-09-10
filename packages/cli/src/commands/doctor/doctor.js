@@ -1,10 +1,14 @@
+// @flow
 import chalk from 'chalk';
 import envinfo from 'envinfo';
 import {logger} from '@react-native-community/cli-tools';
 import {getHealthchecks, HEALTHCHECK_TYPES} from './healthchecks';
+// $FlowFixMe - converted to TS
 import {getLoader} from '../../tools/loader';
 import printFixOptions, {KEYS} from './printFixOptions';
 import runAutomaticFix, {AUTOMATIC_FIX_LEVELS} from './runAutomaticFix';
+import type {ConfigT} from 'types';
+import type {HealthCheckInterface} from './types';
 
 const printCategory = ({label, key}) => {
   if (key > 0) {
@@ -14,7 +18,15 @@ const printCategory = ({label, key}) => {
   logger.log(chalk.dim(label));
 };
 
-const printIssue = ({label, needsToBeFixed, isRequired}) => {
+const printIssue = ({
+  label,
+  needsToBeFixed,
+  isRequired,
+}: {
+  label: string,
+  needsToBeFixed: boolean,
+  isRequired: boolean,
+}) => {
   const symbol = needsToBeFixed
     ? isRequired
       ? chalk.red('✖')
@@ -29,7 +41,16 @@ const printOverallStats = ({errors, warnings}) => {
   logger.log(`${chalk.bold('Warnings:')} ${warnings}`);
 };
 
-export default (async function runDoctor(argv, ctx, options) {
+type FlagsT = {
+  fix: boolean | void,
+  contributor: boolean | void,
+};
+
+export default (async function runDoctor(
+  argv: Array<string>,
+  ctx: ConfigT,
+  options: FlagsT,
+) {
   const Loader = getLoader();
   const loader = new Loader();
 
@@ -48,7 +69,13 @@ export default (async function runDoctor(argv, ctx, options) {
     ),
   );
 
-  const iterateOverHealthChecks = async ({label, healthchecks}) => ({
+  const iterateOverHealthChecks = async ({
+    label,
+    healthchecks,
+  }: {
+    label: string,
+    healthchecks: Array<HealthCheckInterface>,
+  }) => ({
     label,
     healthchecks: (await Promise.all(
       healthchecks.map(async healthcheck => {
@@ -56,9 +83,9 @@ export default (async function runDoctor(argv, ctx, options) {
           return;
         }
 
-        const {needsToBeFixed} = healthcheck.getDiagnostics
-          ? healthcheck.getDiagnostics(environmentInfo)
-          : await healthcheck.getDiagnosticsAsync(environmentInfo);
+        const {needsToBeFixed} = await healthcheck.getDiagnostics(
+          environmentInfo,
+        );
 
         // Assume that it's required unless specified otherwise
         const isRequired = healthcheck.isRequired !== false;
@@ -66,7 +93,7 @@ export default (async function runDoctor(argv, ctx, options) {
 
         return {
           label: healthcheck.label,
-          needsToBeFixed,
+          needsToBeFixed: Boolean(needsToBeFixed),
           runAutomaticFix: healthcheck.runAutomaticFix,
           isRequired,
           type: needsToBeFixed
@@ -87,6 +114,7 @@ export default (async function runDoctor(argv, ctx, options) {
     );
 
   const iterateOverCategories = categories =>
+    // $FlowFixMe - bad Object.values typings
     Promise.all(categories.map(iterateOverHealthChecks));
 
   const healthchecksPerCategory = await iterateOverCategories(
@@ -129,6 +157,7 @@ export default (async function runDoctor(argv, ctx, options) {
   }
 
   const onKeyPress = async key => {
+    // $FlowFixMe
     process.stdin.setRawMode(false);
     process.stdin.removeAllListeners('data');
 

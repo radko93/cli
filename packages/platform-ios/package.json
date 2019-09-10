@@ -9,6 +9,10 @@
     "js-yaml": "^3.13.1",
     "xcode": "^2.0.0"
   },
+  "devDependencies": {
+    "@react-native-community/cli-types": "^3.0.0-alpha.2",
+    "@types/plist": "^3.0.2"
+  },
   "files": [
     "build",
     "native_modules.rb"
